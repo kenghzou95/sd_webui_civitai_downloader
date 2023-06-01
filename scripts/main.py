@@ -6,7 +6,9 @@ import json
 import time
 import requests
 import os
-
+import io
+import hashlib
+import shutil
 import modules.scripts as scripts
 from modules import script_callbacks
 
