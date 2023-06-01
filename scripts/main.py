@@ -371,7 +371,7 @@ def refresh_available_extensions_from_data(model_column,hide_tags, sort_column, 
                 """
 
              
-                return code, list(tags)
+    return code, list(tags)
    
 
 
