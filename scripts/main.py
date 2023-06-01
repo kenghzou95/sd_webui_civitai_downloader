@@ -121,21 +121,21 @@ requests.packages.urllib3.disable_warnings()
 
 # output is downloaded file path
 def dl(url, filepath):
-    util.printD("Start downloading from: " + url)
+    printD("Start downloading from: " + url)
     # get file_path
     file_path = ""
     if filepath:
         file_path = filepath
     else:
-        util.printD("folder is none")
+        printD("folder is none")
         return
 
     # first request for header
-    rh = requests.get(url, stream=True, verify=False, headers=util.def_headers, proxies=util.proxies)
+    rh = requests.get(url, stream=True, verify=False, headers=def_headers, proxies=proxies)
     # get file size
     total_size = 0
     total_size = int(rh.headers['Content-Length'])
-    util.printD(f"File size: {total_size}")
+    printD(f"File size: {total_size}")
 
     # if file_path is empty, need to get file name from download url's header
     if not file_path:
@@ -147,25 +147,25 @@ def dl(url, filepath):
             # in case "" is in CD filename's start and end, need to strip them out
             filename = cd.split("=")[1].strip('"')
             if not filename:
-                util.printD("Fail to get file name from Content-Disposition: " + cd)
+                printD("Fail to get file name from Content-Disposition: " + cd)
                 return
             
         if not filename:
-            util.printD("Can not get file name from download url's header")
+            printD("Can not get file name from download url's header")
             return
         
         # with folder and filename, now we have the full file path
         file_path = os.path.join(folder, filename)
 
 
-    util.printD("Target file path: " + file_path)
+    printD("Target file path: " + file_path)
     base, ext = os.path.splitext(file_path)
 
     # check if file is already exist
     count = 2
     new_base = base
     while os.path.isfile(file_path):
-        util.printD("Target file already exist.")
+        printD("Target file already exist.")
         # re-name
         new_base = base + "_" + str(count)
         file_path = new_base + ext
@@ -175,21 +175,21 @@ def dl(url, filepath):
     dl_file_path = new_base+dl_ext
 
 
-    util.printD(f"Downloading to temp file: {dl_file_path}")
+    printD(f"Downloading to temp file: {dl_file_path}")
 
     # check if downloading file is exsited
     downloaded_size = 0
     if os.path.exists(dl_file_path):
         downloaded_size = os.path.getsize(dl_file_path)
 
-    util.printD(f"Downloaded size: {downloaded_size}")
+    printD(f"Downloaded size: {downloaded_size}")
 
     # create header range
     headers = {'Range': 'bytes=%d-' % downloaded_size}
-    headers['User-Agent'] = util.def_headers['User-Agent']
+    headers['User-Agent'] = def_headers['User-Agent']
 
     # download with header
-    r = requests.get(url, stream=True, verify=False, headers=headers, proxies=util.proxies)
+    r = requests.get(url, stream=True, verify=False, headers=headers, proxies=proxies)
 
     # write to file
     with open(dl_file_path, "ab") as f:
@@ -210,47 +210,47 @@ def dl(url, filepath):
 
     # rename file
     os.rename(dl_file_path, file_path)
-    util.printD(f"File Downloaded to: {file_path}")
+    printD(f"File Downloaded to: {file_path}")
     return file_path
     
 def dl_model_new_version(msg, max_size_preview, skip_nsfw_preview):
-    util.printD("Start dl_model_new_version")
+    printD("Start dl_model_new_version")
 
     output = ""
 
     result = msg_handler.parse_js_msg(msg)
     if not result:
         output = "Parsing js ms failed"
-        util.printD(output)
+        printD(output)
         return output
     
     model_path = result["model_path"]
     version_id = result["version_id"]
     download_url = result["download_url"]
 
-    util.printD("model_path: " + model_path)
-    util.printD("version_id: " + str(version_id))
-    util.printD("download_url: " + download_url)
+    printD("model_path: " + model_path)
+    printD("version_id: " + str(version_id))
+    printD("download_url: " + download_url)
 
     # check data
     if not model_path:
         output = "model_path is empty"
-        util.printD(output)
+        printD(output)
         return output
 
     if not version_id:
         output = "version_id is empty"
-        util.printD(output)
+        printD(output)
         return output
     
     if not download_url:
         output = "download_url is empty"
-        util.printD(output)
+        printD(output)
         return output
 
     if not os.path.isfile(model_path):
         output = "model_path is not a file: "+ model_path
-        util.printD(output)
+        printD(output)
         return output
 
     # get model folder from model path
@@ -261,20 +261,20 @@ def dl_model_new_version(msg, max_size_preview, skip_nsfw_preview):
     # r = civitai.search_local_model_info_by_version_id(model_folder, version_id)
     # if r:
     #     output = "This model version is already existed"
-    #     util.printD(output)
+    #     printD(output)
     #     return output
 
     # download file
-    new_model_path = downloader.dl(download_url, model_folder, None, None)
+    new_model_path = dl(download_url, model_folder, None, None)
     if not new_model_path:
         output = "Download failed, check console log for detail. Download url: " + download_url
-        util.printD(output)
+        printD(output)
         return output
 
 
 
     output = "Done. Model downloaded to: " + new_model_path
-    util.printD(output)
+    printD(output)
     return output
     
 available_extensions = {"items": []}
