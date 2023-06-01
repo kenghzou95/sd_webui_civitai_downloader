@@ -20,6 +20,39 @@ def_headers = {'User-Agent': 'Mozilla/5.0 (iPad; CPU OS 12_2 like Mac OS X) Appl
 
 proxies = None
 
+available_extensions = {"items": []}
+
+sort_ordering = [
+   "Highest Rated", "Most Downloaded", "Newest"
+]
+model_ordering = [
+   "Checkpoint", "TextualInversion", "LORA"
+]
+path_ordering =[
+    "stable-diffusion-webui/models/Stable-diffusion", "stable-diffusion-webui\embeddings","stable-diffusion-webui/models/Lora"
+]
+nsfw_ordering = [
+   "false", "true"
+]
+from modules import shared
+
+
+# this is the default root path
+root_path = os.getcwd()
+
+# if command line arguement is used to change model folder, 
+# then model folder is in absolute path, not based on this root path anymore.
+# so to make extension work with those absolute model folder paths, model folder also need to be in absolute path
+folders = [
+   os.path.join(root_path, "models", "Stable-diffusion"),
+   os.path.join(root_path, "embeddings"),
+   os.path.join(root_path, "models", "Lora"),
+   os.path.join(root_path, "models", "hypernetworks"),
+]
+
+exts = (".bin", ".pt", ".safetensors", ".ckpt")
+info_ext = ".info"
+vae_suffix = ".vae"
 
 # print for debugging
 def printD(msg):
@@ -277,21 +310,7 @@ def dl_model_new_version(msg, max_size_preview, skip_nsfw_preview):
     printD(output)
     return output
     
-available_extensions = {"items": []}
-
-sort_ordering = [
-   "Highest Rated", "Most Downloaded", "Newest"
-]
-model_ordering = [
-   "Checkpoint", "TextualInversion", "LORA"
-]
-path_ordering =[
-    "stable-diffusion-webui/models/Stable-diffusion", "stable-diffusion-webui\embeddings","stable-diffusion-webui/models/Lora"
-]
-nsfw_ordering = [
-   "false", "true"
-]
-def refresh_available_extensions_from_data(hide_tags, sort_column, filter_text=""):
+def refresh_available_extensions_from_data(model_column,hide_tags, sort_column, filter_text=""):
     extlist = available_extensions["items"]
     tags = available_extensions.get("tags", {})
     tags_to_hide = set(hide_tags)
@@ -311,43 +330,48 @@ def refresh_available_extensions_from_data(hide_tags, sort_column, filter_text="
     #sort_reverse, sort_function = sort_ordering[sort_column if 0 <= sort_column < len(sort_ordering) else 0]
    
     for ext in extlist:
-        name = ext.get("name", "noname")
-        url = ext.get("type", "")
-        description = ext.get("nsfw", "")
-        extension_tags = ext.get("tags", [])
-        
-        if url is None:
-            continue
+        model_version = ext["modelVersions"]
+        for mdl in model_version:
+            files = mdl["files"]
+            for file in files:
+                url = file.get("downloadUrl","")
+                name = file.get("name", "noname")
+                type = ext.get("type", "")
+                description = ext.get("nsfw", "")
+                extension_tags = ext.get("tags", [])
+                
+                if url is None:
+                    continue
 
-        if len([x for x in extension_tags if x in tags_to_hide]) > 0:
-            hidden += 1
-            continue
+                if len([x for x in extension_tags if x in tags_to_hide]) > 0:
+                    hidden += 1
+                    continue
 
-        existing = None
-  
-        install_code = f"""<button onclick="install_extension_from_index(this, '{html.escape(url)}')" {"disabled=disabled" if existing else ""} class="lg secondary gradio-button custom-button">{"Download" if not existing else "Installed"}</button>"""
+                existing = None
+          
+                install_code = f"""<button onclick="dl({html.escape(url)}, '{folders[model_column]}')" {"disabled=disabled" if existing else ""} class="lg secondary gradio-button custom-button">{"Download" if not existing else "Installed"}</button>"""
 
-        tags_text = ", ".join([f"<span class='extension-tag' title='{tags.get(x, '')}'>{x}</span>" for x in extension_tags])
+                tags_text = ", ".join([f"<span class='extension-tag' title='{tags.get(x, '')}'>{x}</span>" for x in extension_tags])
 
-        code += f"""
-            <tr>
-                <td><a href="{html.escape(url)}" target="_blank">{html.escape(name)}</a><br />{tags_text}</td>
-                <td>{description}</td>
-                <td>{install_code}</td>
-            </tr>
+                code += f"""
+                    <tr>
+                        <td><a href="{html.escape(url)}" target="_blank">{html.escape(name)}</a><br />{tags_text}</td>
+                        <td>{description}</td>
+                        <td>{install_code}</td>
+                    </tr>
 
-        """
+                """
 
-        for tag in [x for x in extension_tags if x not in tags]:
-            tags[tag] = tag
+                for tag in [x for x in extension_tags if x not in tags]:
+                    tags[tag] = tag
 
-    code += """
-        </tbody>
-    </table>
-    """
+            code += """
+                </tbody>
+            </table>
+            """
 
- 
-    return code, list(tags)
+         
+            return code, list(tags)
    
 
 
@@ -383,7 +407,7 @@ def refresh_available_extensions(model_column, hide_tags, sort_column):
         text = response.read()
     
     available_extensions = json.loads(text)
-    code, tags = refresh_available_extensions_from_data(hide_tags, sort_column)
+    code, tags = refresh_available_extensions_from_data(model_column,hide_tags, sort_column)
 
     return code,  ''
 
