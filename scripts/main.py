@@ -17,7 +17,7 @@ sort_ordering = [
    "Highest Rated", "Most Downloaded", "Newest"
 ]
 model_ordering = [
-   "Checkpoint", "TextualInversion", "LORA""
+   "Checkpoint", "TextualInversion", "LORA"
 ]
 path_ordering =[
     "stable-diffusion-webui/models/Stable-diffusion", "stable-diffusion-webui\embeddings","stable-diffusion-webui/models/Lora"
