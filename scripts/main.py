@@ -365,10 +365,10 @@ def refresh_available_extensions_from_data(model_column,hide_tags, sort_column, 
                 for tag in [x for x in extension_tags if x not in tags]:
                     tags[tag] = tag
 
-                code += """
-                    </tbody>
-                </table>
-                """
+    code += """
+        </tbody>
+    </table>
+    """
 
              
     return code, list(tags)
