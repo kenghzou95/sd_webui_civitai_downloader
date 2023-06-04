@@ -348,9 +348,8 @@ def refresh_available_extensions_from_data(model_column,hide_tags, sort_column, 
                     continue
 
                 existing = None
-                printD(url)
-                printD(folders[model_column])
-                install_code = f"""<button onclick="dl({html.escape(url)}, '{folders[model_column]}')" class="lg secondary gradio-button custom-button">Download</button>"""
+                
+                install_code = f"""<button onclick=dl({html.escape(url)}, '{folders[model_column]}') class="lg secondary gradio-button custom-button">Download</button>"""
 
                 tags_text = ", ".join([f"<span class='extension-tag' title='{tags.get(x, '')}'>{x}</span>" for x in extension_tags])
 
